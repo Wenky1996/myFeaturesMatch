@@ -2,6 +2,7 @@
 #include <fstream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/xfeatures2d.hpp>
+#include "AgainstNuclearCorner.h"
 
 using namespace cv;
 using std::cout;
@@ -9,9 +10,21 @@ using std::endl;
 
 
 int main(int argc,char **argv) {
-    Mat imageGary1 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/img1.bmp",0);
-    Mat imageGary2 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/img2.bmp",0);
-    cout<<204*-2.3911512e-06+319*2.9032886e-06+5.7865196e-01<<endl;
+
+    Mat imageNo1 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise1.bmp",1);
+    Mat imageNo2 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise2.bmp",1);
+    Mat imageGary1,imageGary2;
+    cvtColor(imageNo1,imageGary1,CV_BGR2GRAY);
+    cvtColor(imageNo2,imageGary2,CV_BGR2GRAY);
+
+    //get the picture
+    if(imageGary1.empty()||imageGary2.empty()){
+        cout<<"can not load the picture"<<endl;
+    }
+    imshow("the first image",imageGary1);
+    imshow("the second image",imageGary2);
+
+
     //open file of homography matrix
     std::fstream fileHomography;
     fileHomography.open("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/H1to2p",std::ios_base::in);//open file with read mode
@@ -26,19 +39,14 @@ int main(int argc,char **argv) {
            fileHomography>>homography1to2.at<float>(i,j);
         }
     }
+    cout<<"the homography matrix"<<endl;
     cout<<homography1to2<<endl;
 
-    //get the picture
-    if(imageGary1.empty()||imageGary2.empty()){
-       cout<<"can not load the picture"<<endl;
-    }
-    imshow("the first image",imageGary1);
-    imshow("the second image",imageGary2);
 
     //1.using fast feature algorithm
     std::vector<KeyPoint> fastKeyPoints1;
     std::vector<KeyPoint> fastKeyPoints2;
-    Ptr<FastFeatureDetector> ptrFAST = FastFeatureDetector::create(40);
+    Ptr<FastFeatureDetector> ptrFAST = FastFeatureDetector::create(100);
 
     ptrFAST->detect(imageGary1,fastKeyPoints1);
     ptrFAST->detect(imageGary2,fastKeyPoints2);
@@ -51,7 +59,7 @@ int main(int argc,char **argv) {
     //2.using orb feature algorithm
     std::vector<KeyPoint> orbKeyPoint1;
     std::vector<KeyPoint> orbKeyPoint2;
-    Ptr<ORB> ptrORB = ORB::create(40);
+    Ptr<ORB> ptrORB = ORB::create(100);
     ptrORB->detect(imageGary1,orbKeyPoint1);
     ptrORB->detect(imageGary2,orbKeyPoint2);
     Mat orbDescriptors1;
@@ -59,14 +67,33 @@ int main(int argc,char **argv) {
     ptrORB->compute(imageGary1,orbKeyPoint1,orbDescriptors1);
     ptrORB->compute(imageGary2,orbKeyPoint2,orbDescriptors2);
 
+
+
+    //3.using Against Nuclear corner
+    std::vector<KeyPoint> ANCKeyPointsNO1;
+    std::vector<KeyPoint> ANCKeyPointsNO2;
+    AgainstNuclearCorner ANCDetector(100);//设定角点个数
+    ANCDetector.CalculateCorner(imageNo1);
+    ANCKeyPointsNO1=ANCDetector.getKeyPiont();
+    ANCDetector.CalculateCorner(imageNo2);
+    ANCKeyPointsNO2=ANCDetector.getKeyPiont();
+
+    Mat ANCDescriptorNO1;
+    Mat ANCDescriptorNO2;
+    Ptr<DescriptorExtractor> ANCDescriptor=xfeatures2d::FREAK::create();
+    ANCDescriptor->compute(imageGary1,ANCKeyPointsNO1,ANCDescriptorNO1);
+
+
+
+
     //match the points of fast and draw the picture
     BFMatcher matcher(NORM_HAMMING);
     std::vector<DMatch> matches;
     matcher.match(fastDescriptors1,fastDescriptors2,matches);
 
     Mat matchImage;
-    std::nth_element(matches.begin(),matches.begin()+20,matches.end());
-    matches.erase(matches.begin()+20,matches.end());
+    //std::nth_element(matches.begin(),matches.begin()+20,matches.end());
+   // matches.erase(matches.begin()+20,matches.end());
 
     drawMatches(imageGary1,fastKeyPoints1,imageGary2,fastKeyPoints2,matches,matchImage,Scalar(255,255,0),Scalar(0,255,255));
     imshow("match resualt of fast",matchImage);
@@ -100,8 +127,8 @@ int main(int argc,char **argv) {
     matcherOrb.match(orbDescriptors1,orbDescriptors2,matchesOrb);
 
     Mat matchImageOrb;
-    std::nth_element(matchesOrb.begin(),matchesOrb.begin()+20,matchesOrb.end());
-    matchesOrb.erase(matchesOrb.begin()+20,matchesOrb.end());
+    //std::nth_element(matchesOrb.begin(),matchesOrb.begin()+20,matchesOrb.end());
+    //matchesOrb.erase(matchesOrb.begin()+20,matchesOrb.end());
     drawMatches(imageGary1,orbKeyPoint1,imageGary2,orbKeyPoint2,matchesOrb,matchImageOrb,Scalar(0,255,255),Scalar(0,255,0));
     imshow("match result of orb",matchImageOrb);
 
