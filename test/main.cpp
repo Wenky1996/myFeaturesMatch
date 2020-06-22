@@ -13,7 +13,7 @@ double EvaluateByHomogray(const Mat &homographyMatrix, const std::vector<DMatch>
 int main(int argc,char **argv) {
 
     Mat imageNo1 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise1.bmp",1);
-    Mat imageNo2 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise6.bmp",1);
+    Mat imageNo2 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise2.bmp",1);
     Mat imageGary1,imageGary2;
     cvtColor(imageNo1,imageGary1,CV_BGR2GRAY);
     cvtColor(imageNo2,imageGary2,CV_BGR2GRAY);
@@ -28,7 +28,7 @@ int main(int argc,char **argv) {
 
     //open file of homography matrix
     std::fstream fileHomography;
-    fileHomography.open("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/H1to6p",std::ios_base::in);//open file with read mode
+    fileHomography.open("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/H1to2p",std::ios_base::in);//open file with read mode
     if(!fileHomography.is_open()){
         cout<<"can not open file"<<endl;
         return -1;
@@ -58,13 +58,13 @@ int main(int argc,char **argv) {
 
     if(setFastNumber<numberFastNo1){//对特征点进行剔除
         std::nth_element(fastKeyPoints1.begin(),fastKeyPoints1.begin()+setFastNumber,fastKeyPoints1.end(),[](KeyPoint& a,KeyPoint& b){ return a.response>b.response;});
+        fastKeyPoints1.erase(fastKeyPoints1.begin()+setFastNumber,fastKeyPoints1.end());
     }
-    fastKeyPoints1.erase(fastKeyPoints1.begin()+setFastNumber,fastKeyPoints1.end());
 
     if(setFastNumber<numberFastNo2){
         std::nth_element(fastKeyPoints2.begin(),fastKeyPoints2.begin()+setFastNumber,fastKeyPoints2.end(),[](KeyPoint& a,KeyPoint& b){return a.response>b.response;});
+        fastKeyPoints2.erase(fastKeyPoints2.begin()+setFastNumber,fastKeyPoints2.end());
     }
-    fastKeyPoints2.erase(fastKeyPoints2.begin()+setFastNumber,fastKeyPoints2.end());
 
     Mat fastDescriptors1;
     Mat fastDescriptors2;
@@ -75,7 +75,7 @@ int main(int argc,char **argv) {
     //2.using orb feature algorithm
     std::vector<KeyPoint> orbKeyPoint1;
     std::vector<KeyPoint> orbKeyPoint2;
-    Ptr<ORB> ptrORB = ORB::create(50);
+    Ptr<ORB> ptrORB = ORB::create(100);
     ptrORB->detect(imageGary1,orbKeyPoint1);
     ptrORB->detect(imageGary2,orbKeyPoint2);
     Mat orbDescriptors1;
@@ -88,7 +88,7 @@ int main(int argc,char **argv) {
     //3.using Against Nuclear corner
     std::vector<KeyPoint> ANCKeyPointsNO1;
     std::vector<KeyPoint> ANCKeyPointsNO2;
-    AgainstNuclearCorner ANCDetector(50);//设定角点个数
+    AgainstNuclearCorner ANCDetector(100);//设定角点个数
     ANCDetector.CalculateCorner(imageNo1);
     ANCKeyPointsNO1=ANCDetector.getKeyPiont();
     ANCDetector.CalculateCorner(imageNo2);
@@ -109,8 +109,8 @@ int main(int argc,char **argv) {
     matcher.match(fastDescriptors1,fastDescriptors2,matches);
 
     Mat matchImage;
-    //std::nth_element(matches.begin(),matches.begin()+20,matches.end());
-   // matches.erase(matches.begin()+20,matches.end());
+//    std::nth_element(matches.begin(),matches.begin()+20,matches.end());
+//    matches.erase(matches.begin()+20,matches.end());
 
     drawMatches(imageGary1,fastKeyPoints1,imageGary2,fastKeyPoints2,matches,matchImage,Scalar(255,255,0),Scalar(0,255,255));
     imshow("match resualt of fast",matchImage);
@@ -135,7 +135,7 @@ int main(int argc,char **argv) {
         idxFast++;
         allErrorsFast=allErrorsFast+xErrors+yErrors;
     }
-    cout<<"the fast feature all errors piexel is "<<allErrorsFast<<endl;
+    cout<<"the all errors of FAST feature is "<<allErrorsFast<<endl;
 
 
     //match orb feature with BF
@@ -144,8 +144,8 @@ int main(int argc,char **argv) {
     matcherOrb.match(orbDescriptors1,orbDescriptors2,matchesOrb);
 
     Mat matchImageOrb;
-    //std::nth_element(matchesOrb.begin(),matchesOrb.begin()+20,matchesOrb.end());
-    //matchesOrb.erase(matchesOrb.begin()+20,matchesOrb.end());
+//    std::nth_element(matchesOrb.begin(),matchesOrb.begin()+20,matchesOrb.end());
+//    matchesOrb.erase(matchesOrb.begin()+20,matchesOrb.end());
     drawMatches(imageGary1,orbKeyPoint1,imageGary2,orbKeyPoint2,matchesOrb,matchImageOrb,Scalar(0,255,255),Scalar(0,255,0));
     imshow("match result of orb",matchImageOrb);
 
@@ -158,9 +158,6 @@ int main(int argc,char **argv) {
         pointsOrb2.push_back(orbKeyPoint2[idxTrain].pt);
     }
     Mat homographyMatrixOrb;
-    std::vector<char> inliers;
-    homographyMatrixOrb = findHomography(pointsFast1,pointsFast2,inliers,cv::RANSAC,1);
-    cout<<homographyMatrixOrb<<endl;
     int idx{0};
     float allErrors{0};
     for(auto &i:pointsOrb1){
@@ -179,6 +176,9 @@ int main(int argc,char **argv) {
     BFMatcher matchANC;
     std::vector<DMatch> matchsANC;//匹配的ANC特征
     matchANC.match(ANCDescriptorNO1,ANCDescriptorNO2,matchsANC);
+//    std::nth_element(matchsANC.begin(),matchsANC.begin()+20,matchsANC.end());
+//    matchsANC.erase(matchsANC.begin()+20,matchsANC.end());
+
 
     Mat matchImageANC;
     drawMatches(imageGary1,ANCKeyPointsNO1,imageGary2,ANCKeyPointsNO2,matchsANC,matchImageANC,Scalar(0,0,255),Scalar(255,0,0));
@@ -187,7 +187,7 @@ int main(int argc,char **argv) {
 
     double errorANC{0};
     errorANC=EvaluateByHomogray(homography1to2,matchsANC,ANCKeyPointsNO1,ANCKeyPointsNO2);
-    cout<<"the ANC erros is "<<errorANC<<endl;
+    cout<<"the all errors of ANC feature is "<<errorANC<<endl;
 
     waitKey(0);
     getchar();
@@ -219,6 +219,5 @@ double EvaluateByHomogray(const Mat &homographyMatrix, const std::vector<DMatch>
         float errorsY=abs(pointNo2[i].y-projectY);
         errors=errors+errorsX+errorsY;
     }
-    cout<<"the homography projection error is "<<errors<<endl;
     return errors;
 }

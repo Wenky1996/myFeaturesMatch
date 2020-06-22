@@ -19,7 +19,6 @@ AgainstNuclearCorner::AgainstNuclearCorner(const int &numberCorners):_numberConn
  * @param noiseLocation
  */
 void AgainstNuclearCorner::FindNoise(Mat &noiseImage){
-    std::cout<<"hello"<<std::endl;
     Mat channel[3];
     split(noiseImage,channel);
     Mat_<uchar > channelB{channel[0]};
@@ -55,8 +54,9 @@ void AgainstNuclearCorner::FindNoise(Mat &noiseImage){
 void AgainstNuclearCorner::FastFeature(Mat &noiseImage) {
     Mat garyImage;
     cvtColor(noiseImage,garyImage,CV_BGR2GRAY);
-    Ptr<FastFeatureDetector> fastPtr = FastFeatureDetector::create(40);
+    Ptr<FastFeatureDetector> fastPtr = FastFeatureDetector::create(100);
     fastPtr->detect(garyImage,keyPointFast);
+
 }
 
 /**
@@ -82,7 +82,7 @@ void AgainstNuclearCorner::CornerFilter() {
         }
         mapDistanceCornor.insert(std::pair<int,KeyPoint>(miniDistance,keyPointFast[i]));//向map中插入数据
     }
-    auto iter1 = mapDistanceCornor.upper_bound(8000);//返回键值即距离大于100的迭代器
+    auto iter1 = mapDistanceCornor.upper_bound(100);//返回键值即距离大于100的迭代器
 
     for(auto iter = iter1;iter!=mapDistanceCornor.end();iter++){
         keyPointFilte.push_back(iter->second);
@@ -92,7 +92,9 @@ void AgainstNuclearCorner::CornerFilter() {
     int numberCornersFilte=keyPointFilte.size();
     if(numberCornersFilte>_numberConner){
         std::nth_element(keyPointFilte.begin(),keyPointFilte.begin()+_numberConner,keyPointFilte.end(),[](cv::KeyPoint& a,cv::KeyPoint& b){ return a.response>b.response;});
+        keyPointFilte.erase(keyPointFilte.begin()+_numberConner,keyPointFilte.end());
         keyPoints.resize(_numberConner);
+
         for(int i=0;i<_numberConner;i++){
             keyPoints.push_back(keyPointFilte[i]);
         }
