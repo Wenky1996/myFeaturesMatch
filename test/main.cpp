@@ -12,8 +12,8 @@ double EvaluateByHomogray(const Mat &homographyMatrix, const std::vector<DMatch>
 
 int main(int argc,char **argv) {
 
-    Mat imageNo1 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise1.bmp",1);
-    Mat imageNo2 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise2.bmp",1);
+    Mat imageNo1 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage21/imgNoise1.bmp",1);
+    Mat imageNo2 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage21/imgNoise4.bmp",1);
     Mat imageGary1,imageGary2;
     cvtColor(imageNo1,imageGary1,CV_BGR2GRAY);
     cvtColor(imageNo2,imageGary2,CV_BGR2GRAY);
@@ -28,7 +28,7 @@ int main(int argc,char **argv) {
 
     //open file of homography matrix
     std::fstream fileHomography;
-    fileHomography.open("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/H1to2p",std::ios_base::in);//open file with read mode
+    fileHomography.open("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/H1to4p",std::ios_base::in);//open file with read mode
     if(!fileHomography.is_open()){
         cout<<"can not open file"<<endl;
         return -1;
@@ -45,7 +45,7 @@ int main(int argc,char **argv) {
 
 
     //1.using fast feature algorithm
-    int setFastNumber{50};
+    int setFastNumber{100};
     std::vector<KeyPoint> fastKeyPoints1;
     std::vector<KeyPoint> fastKeyPoints2;
     Ptr<FastFeatureDetector> ptrFAST = FastFeatureDetector::create(100);
@@ -88,11 +88,12 @@ int main(int argc,char **argv) {
     //3.using Against Nuclear corner
     std::vector<KeyPoint> ANCKeyPointsNO1;
     std::vector<KeyPoint> ANCKeyPointsNO2;
-    AgainstNuclearCorner ANCDetector(100);//设定角点个数
-    ANCDetector.CalculateCorner(imageNo1);
-    ANCKeyPointsNO1=ANCDetector.getKeyPiont();
-    ANCDetector.CalculateCorner(imageNo2);
-    ANCKeyPointsNO2=ANCDetector.getKeyPiont();
+    AgainstNuclearCorner ANCDetector1(100);//设定角点个数
+    ANCDetector1.CalculateCorner(imageNo1);
+    ANCKeyPointsNO1=ANCDetector1.getKeyPiont();
+    AgainstNuclearCorner ANCDetector2(100);
+    ANCDetector2.CalculateCorner(imageNo2);
+    ANCKeyPointsNO2=ANCDetector2.getKeyPiont();
 
     Mat ANCDescriptorNO1;
     Mat ANCDescriptorNO2;
