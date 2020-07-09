@@ -36,13 +36,14 @@ void AgainstNuclearCorner::FindNoise(Mat &noiseImage){
             float rateB{static_cast<float >(valueB)/totalGary};
             float rateG{static_cast<float >(valueG)/totalGary};
             float rateR{static_cast<float >(valueR)/totalGary};
-            if(rateB>0.8||rateG>0.8||rateR>0.8){
+            if(rateB>0.6||rateG>0.6||rateR>0.6){
                 Point2i currLocation{i,j};
                 noiseLocation.push_back(currLocation);
                 _noiseNumber++;
             }
         }
     }
+    std::cout<<"the noise number is "<<_noiseNumber<<std::endl;
 
 }
 
@@ -54,7 +55,7 @@ void AgainstNuclearCorner::FindNoise(Mat &noiseImage){
 void AgainstNuclearCorner::FastFeature(Mat &noiseImage) {
     Mat garyImage;
     cvtColor(noiseImage,garyImage,CV_BGR2GRAY);
-    Ptr<FastFeatureDetector> fastPtr = FastFeatureDetector::create(100);
+    Ptr<FastFeatureDetector> fastPtr = FastFeatureDetector::create(50);
     fastPtr->detect(garyImage,keyPointFast);
 
 }
@@ -106,7 +107,9 @@ void AgainstNuclearCorner::CornerFilter() {
 
 }
 
-
+/*
+ * calculate the corner of picture
+ */
 void AgainstNuclearCorner::CalculateCorner(Mat& srcImage) {
     FindNoise(srcImage);
     FastFeature(srcImage);
