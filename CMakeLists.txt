@@ -13,10 +13,11 @@ add_library(AgainstNuclearCorner
         )
 
 add_executable(MatchEvaluation  test/main.cpp)
+add_executable(NewMatch         test/EvaluationMatch.cpp)
 add_executable(TEST test/test.cpp include/AgainstNuclearCorner.h src/AgainstNuclearCorner.cpp)
 add_executable(RuningTimeTest test/RuningTimeTest.cpp)
 
 target_link_libraries(MatchEvaluation ${OpenCV_LIBS} AgainstNuclearCorner)
 target_link_libraries(TEST ${OpenCV_LIBS})
 target_link_libraries(RuningTimeTest ${OpenCV_LIBS} AgainstNuclearCorner)
-
+target_link_libraries(NewMatch ${OpenCV_LIBS} AgainstNuclearCorner)

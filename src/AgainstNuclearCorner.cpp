@@ -68,11 +68,11 @@ void AgainstNuclearCorner::CornerFilter() {
     std::multimap<int,KeyPoint> mapDistanceCornor;//可以有重复的键值即距离
     int numberFast=keyPointFast.size();
     int numberNoise=noiseLocation.size();
-    int miniDistance{10000};
+    int miniDistance{1000000};
     for(int i=0;i<numberFast;i++){
         int xPoint = keyPointFast[i].pt.x;
         int yPoint = keyPointFast[i].pt.y;
-        miniDistance=10000;
+        miniDistance=1000000;
         for(int j=0;j<numberNoise;j++){
             int xNoise = noiseLocation[j].x;
             int yNoise = noiseLocation[j].y;

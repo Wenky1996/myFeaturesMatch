@@ -14,8 +14,8 @@ void DescriptorMatchMy(const Mat DescriptorNO1, const Mat DescriptorNo2,std::vec
 
 int main(int argc,char **argv) {
 
-    Mat imageNo1 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/img1.bmp",1);
-    Mat imageNo2 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/img2.bmp",1);
+    Mat imageNo1 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise1.bmp",1);///home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise1.bmp
+    Mat imageNo2 = imread("/home/zwk/CLionProjects/FeatureMatchEvaluation/bmp/NoiseImage/imgNoise2.bmp",1);
     Mat imageGary1,imageGary2;
     cvtColor(imageNo1,imageGary1,CV_BGR2GRAY);
     cvtColor(imageNo2,imageGary2,CV_BGR2GRAY);
@@ -69,21 +69,21 @@ int main(int argc,char **argv) {
     //get the fast corner's descriptor
     Mat fastDescriptors1;
     Mat fastDescriptors2;
-    Ptr<DescriptorExtractor> featureFREAK = xfeatures2d::FREAK::create();
+    Ptr<DescriptorExtractor> featureFREAK = xfeatures2d::BriefDescriptorExtractor::create();
     featureFREAK->compute(imageGary1,fastKeyPoints1,fastDescriptors1);
     featureFREAK->compute(imageGary2,fastKeyPoints2,fastDescriptors2);
 
 
     //2.using orb feature algorithm
-    std::vector<KeyPoint> orbKeyPoint1;
-    std::vector<KeyPoint> orbKeyPoint2;
-    Ptr<ORB> ptrORB = ORB::create(100);
-    ptrORB->detect(imageGary1,orbKeyPoint1);
-    ptrORB->detect(imageGary2,orbKeyPoint2);
-    Mat orbDescriptors1;
-    Mat orbDescriptors2;
-    ptrORB->compute(imageGary1,orbKeyPoint1,orbDescriptors1);
-    ptrORB->compute(imageGary2,orbKeyPoint2,orbDescriptors2);
+//    std::vector<KeyPoint> orbKeyPoint1;
+//    std::vector<KeyPoint> orbKeyPoint2;
+//    Ptr<ORB> ptrORB = ORB::create(100);
+//    ptrORB->detect(imageGary1,orbKeyPoint1);
+//    ptrORB->detect(imageGary2,orbKeyPoint2);
+//    Mat orbDescriptors1;
+//    Mat orbDescriptors2;
+//    ptrORB->compute(imageGary1,orbKeyPoint1,orbDescriptors1);
+//    ptrORB->compute(imageGary2,orbKeyPoint2,orbDescriptors2);
 
 
 
@@ -99,11 +99,11 @@ int main(int argc,char **argv) {
 
     Mat ANCDescriptorNO1;
     Mat ANCDescriptorNO2;
-    Ptr<DescriptorExtractor> ANCDescriptor=xfeatures2d::FREAK::create();
+    Ptr<DescriptorExtractor> ANCDescriptor=xfeatures2d::BriefDescriptorExtractor::create();
     ANCDescriptor->compute(imageGary1,ANCKeyPointsNO1,ANCDescriptorNO1);
     ANCDescriptor->compute(imageGary2,ANCKeyPointsNO2,ANCDescriptorNO2);
 
-    cout<<"the information of ANC corner's FREAK descriptor"<<endl;
+    cout<<"the information of ANC corner's BRIEF  descriptor"<<endl;
     cout<<ANCDescriptorNO1.size()<<endl;
 
 
@@ -144,48 +144,47 @@ int main(int argc,char **argv) {
     cout<<"the number of fast feature is "<<pointsFast1.size()<<endl;
     cout<<"the  errors of FAST feature is "<<allErrorsFast<<endl;
 
-
     //match orb feature with BF
-    BFMatcher matcherOrb;
-    std::vector<DMatch> matchesOrb;
-    matcherOrb.match(orbDescriptors1,orbDescriptors2,matchesOrb);
-
-
-    cout<<"the information of ORB descriptor"<<endl;
-    cout<<orbDescriptors1.size()<<endl;
+//    BFMatcher matcherOrb;
+//    std::vector<DMatch> matchesOrb;
+//    matcherOrb.match(orbDescriptors1,orbDescriptors2,matchesOrb);
+//
+//
+//    cout<<"the information of ORB descriptor"<<endl;
+//    cout<<orbDescriptors1.size()<<endl;
    // cout<<orbDescriptors1<<endl;
 
 
-    Mat matchImageOrb;
-    int SetMatchNumber;
+//    Mat matchImageOrb;
+//    int SetMatchNumber;
 //    std::nth_element(matchesOrb.begin(),matchesOrb.begin()+20,matchesOrb.end());
 //    matchesOrb.erase(matchesOrb.begin()+20,matchesOrb.end());
-    drawMatches(imageGary1,orbKeyPoint1,imageGary2,orbKeyPoint2,matchesOrb,matchImageOrb,Scalar(0,255,255),Scalar(0,255,0));
-    imshow("match result of orb",matchImageOrb);
-
-    //get the coordinate of match keyPoint of orb and calculate the errors
-    std::vector<Point2f> pointsOrb1,pointsOrb2;
-    for(auto &i:matchesOrb){
-        int idxQuery=i.queryIdx;
-        int idxTrain=i.trainIdx;
-        pointsOrb1.push_back(orbKeyPoint1[idxQuery].pt);
-        pointsOrb2.push_back(orbKeyPoint2[idxTrain].pt);
-    }
-
-    int idx{0};
-    float allErrors{0};
-    for(auto &i:pointsOrb1){
-        float s=i.x*homography1to2.at<float>(2,0)+i.y*homography1to2.at<float>(2,1)+homography1to2.at<float>(2,2);
-        float xTrain=(i.x*homography1to2.at<float>(0,0)+i.y*homography1to2.at<float>(0,1)+homography1to2.at<float>(0,2))/s;
-        float yTrain=(i.x*homography1to2.at<float>(1,0)+i.y*homography1to2.at<float>(1,1)+homography1to2.at<float>(1,2))/s;
-        float xError = abs(xTrain-pointsOrb2[idx].x);
-        float yError = abs(yTrain-pointsOrb2[idx].y);
-        idx++;
-        allErrors=allErrors+yError+xError;
-    }
-    allErrors=allErrors/pointsOrb1.size();
-    cout<<"the number of orb feature is "<<pointsOrb1.size()<<endl;
-    cout<<"the  errors of orb feature is "<<allErrors<<endl;
+//    drawMatches(imageGary1,orbKeyPoint1,imageGary2,orbKeyPoint2,matchesOrb,matchImageOrb,Scalar(0,255,255),Scalar(0,255,0));
+//    imshow("match result of orb",matchImageOrb);
+//
+//    //get the coordinate of match keyPoint of orb and calculate the errors
+//    std::vector<Point2f> pointsOrb1,pointsOrb2;
+//    for(auto &i:matchesOrb){
+//        int idxQuery=i.queryIdx;
+//        int idxTrain=i.trainIdx;
+//        pointsOrb1.push_back(orbKeyPoint1[idxQuery].pt);
+//        pointsOrb2.push_back(orbKeyPoint2[idxTrain].pt);
+//    }
+//
+//    int idx{0};
+//    float allErrors{0};
+//    for(auto &i:pointsOrb1){
+//        float s=i.x*homography1to2.at<float>(2,0)+i.y*homography1to2.at<float>(2,1)+homography1to2.at<float>(2,2);
+//        float xTrain=(i.x*homography1to2.at<float>(0,0)+i.y*homography1to2.at<float>(0,1)+homography1to2.at<float>(0,2))/s;
+//        float yTrain=(i.x*homography1to2.at<float>(1,0)+i.y*homography1to2.at<float>(1,1)+homography1to2.at<float>(1,2))/s;
+//        float xError = abs(xTrain-pointsOrb2[idx].x);
+//        float yError = abs(yTrain-pointsOrb2[idx].y);
+//        idx++;
+//        allErrors=allErrors+yError+xError;
+//    }
+//    allErrors=allErrors/pointsOrb1.size();
+  //  cout<<"the number of orb feature is "<<pointsOrb1.size()<<endl;
+  // cout<<"the  errors of orb feature is "<<allErrors<<endl;
 
 
     //match ANC
